@@ -20,7 +20,7 @@ import google.generativeai as genai
 
 load_dotenv()
 
-genai.configure(api_key='AIzaSyAAF1cFQJy_zDZKIx8NhZuHKBExZ7mHYLM')
+genai.configure(api_key='')
 
 # Initialize FastAPI app
 app = FastAPI()
@@ -38,8 +38,8 @@ class CategoryInput(BaseModel):
 
 # Define tools for LLM to check facts
 wikipedia = WikipediaQueryRun(api_wrapper=WikipediaAPIWrapper())
-serp = SearchApiAPIWrapper(searchapi_api_key="Rnju4YsZbzjaS5tsvSZ6eTDK")
-search = GoogleSearchAPIWrapper(google_api_key="AIzaSyApGqMIzZW7zD9kvbq4HiTCbh4uDfBSJ4s", google_cse_id="b6b75d890852a46fc")
+serp = SearchApiAPIWrapper(searchapi_api_key="")
+search = GoogleSearchAPIWrapper(google_api_key="", google_cse_id="")
 
 category_tools = {
     "criminal_cases_source_finding": [
@@ -130,7 +130,7 @@ category_tools["science_facts_fact_checking"] = [
 # Initialize language model
 groq_llm = ChatGroq(
     model="llama-3.1-70b-versatile",
-    api_key="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",
+    api_key="",
     temperature=0,
 )
 
