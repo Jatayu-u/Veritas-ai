@@ -1,8 +1,8 @@
 import streamlit as st
-print(st.__version__)
 import requests
+import pandas as pd
+import time
 from streamlit_lottie import st_lottie
-import json
 
 # Lottie animation function
 def load_lottie_url(url: str):
@@ -11,114 +11,202 @@ def load_lottie_url(url: str):
         return None
     return r.json()
 
-# Load Google-themed Lottie animation (verified URL)
+# Load Google-themed Lottie animation
 lottie_google_fact_check = load_lottie_url("https://assets2.lottiefiles.com/packages/lf20_t9gkkhz4.json")
 
 # Page configuration
 st.set_page_config(page_title="Veritas AI Fact Checker", page_icon="🔍", layout="wide")
 
-# Set custom CSS for Google theme colors
+# Custom CSS for styling
 st.markdown("""
     <style>
     .reportview-container {
-        background: #ffffff;
+        background: #FFFFFF; /* Clean white background */
+        color: #333333; /* Dark text for contrast */
     }
-    .sidebar .sidebar-content {
-        background: linear-gradient(180deg, #4285F4, #34A853, #FBBC05, #EA4335);
-    }
-    .stTextInput > div > input {
-        border: 2px solid #4285F4;
+    .stTextInput > div > input, .stTextArea > div > textarea {
+        border: 1px solid #B0BEC5; /* Light grey border */
         padding: 10px;
+        border-radius: 5px; /* Slightly rounded corners */
+        transition: border-color 0.3s;
+        width: 100%; /* Full width */
+        margin-bottom: 20px; /* Add spacing between inputs */
     }
-    .stButton>button {
-        background-color: #4285F4;
-        color: white;
-        border-radius: 12px;
-        padding: 10px 20px;
+    .stTextInput > div > input:focus, .stTextArea > div > textarea:focus {
+        border-color: #ADD8E6; /* Highlight border on focus */
+    }
+    .stFileUploader > div > div {
+        width: 100% !important; /* Full width for file uploader */
+        margin-bottom: 20px; /* Add spacing */
+    }
+    .stButton > button {
+        background-color: #ADD8E6; /* Soft blue */
+        color: black;
+        border-radius: 5px;
+        padding: 12px 24px;
         font-size: 16px;
+        transition: background-color 0.3s, transform 0.3s;
+        border: none; /* Remove default border */
+        cursor: pointer; /* Pointer cursor for buttons */
+        font-weight: bold;
+    }
+    .stButton > button:hover {
+        background-color: #357ae8; /* Darker blue on hover */
+        transform: translateY(-2px); /* Slightly lift the button */
+        color: black;
+    }
+    .header-text {
+        color: #ADD8E6;
+        font-size: 38px;
+        text-align: center; /* Centered header */
+        margin-bottom: 20px; /* Add space between title and content */
+    }
+    .subheader-text {
+        color: white;
+        font-size: 18px;
+        text-align: center; /* Centered subheader */
+        margin-bottom: 10px; /* Add space between subheader and content */
+        margin-top: 20px; 
+    }
+    .footer-text {
+        color: #FBBC05;
+        margin-top: 40px;
+        text-align: center; /* Centered footer */
+    }
+    .fade-in {
+        animation: fadeIn 1s; /* Fade-in effect */
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
     }
     </style>
 """, unsafe_allow_html=True)
 
-# Title with Google colors
-st.title("🔍 Veritas AI Fact Checker")
 
-# Add some space with animation
+# Custom CSS for styling
+st.markdown("""
+    <style>
+    .reportview-container {
+        background: #FFFFFF; /* Clean white background */
+        color: #333333; /* Dark text for contrast */
+    }
+    .stButton > button {
+        background-color: #ADD8E6; /* Soft blue */
+        color: black;
+        border-radius: 5px;
+        padding: 12px 24px;
+        font-size: 16px;
+        font-weight: bold; /* Make the text bold */
+        transition: background-color 0.3s, transform 0.3s;
+        border: none; /* Remove default border */
+        cursor: pointer; /* Pointer cursor for buttons */
+    }
+    .response-container {
+        font-size: 20px;
+        color:#f9f9f9;
+        background-color: black; /* Light grey background for result box */
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+        margin-top: 20px;
+        border-left: 5px solid #34A853; /* Accent color to the left */
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+# Centered title with custom spacing
+st.markdown("<h1 class='header-text'>🔍 Veritas AI Fact Checker</h1>", unsafe_allow_html=True)
+
+# Adjusted Lottie animation (smaller size)
 if lottie_google_fact_check:
-    st_lottie(lottie_google_fact_check, height=250, key="google_fact_check")
+    st_lottie(lottie_google_fact_check, height=150, key="google_fact_check")
 else:
     st.error("Failed to load animation. Please check the URL.")
 
-st.markdown(
-    """
-    <div style="text-align: center;">
-    <h2 style="color: #4285F4; font-size: 40px;">Check the facts before you believe them!</h2>
-    <p style="font-size: 20px;">Powered by Google's vibrant spirit and advanced AI technologies</p>
+# Centered introduction with increased spacing
+st.markdown("""
+    <div class="fade-in">
+    <h2 class="header-text">Check the facts before you believe them!</h2>
+    <p class="subheader-text">Powered by Google's vibrant spirit and advanced AI technologies</p>
     </div>
-    """, unsafe_allow_html=True
-)
+""", unsafe_allow_html=True)
 
-# Input area
-st.markdown("<h3 style='color: #34A853;'>Enter a Video URL:</h3>", unsafe_allow_html=True)
-video_url = st.text_input("Paste the URL here:")
+# First two input fields side by side using st.columns, with spacing
+st.markdown("<h3 class='subheader-text fade-in'>Select Category and Action:</h3>", unsafe_allow_html=True)
 
+col1, col2 = st.columns(2)  # Create two columns
 
-fact_data = [
-    {"fact": "Mahatma Gandhi was born on October 2, 1869.", "validation": "True", "actual_fact": "According to Wikipedia, Mahatma Gandhi was born on October 2, 1869."},
-    {"fact": "Gandhi was a product of his times and held racist views.", "validation": "False", "actual_fact": "Gandhi was a complex figure who made some racist comments but also worked to combat racism."},
-    {"fact": "Gandhi believed in the Aryan brotherhood and thought whites and Indians were superior to Africans.", "validation": "False", "actual_fact": "Gandhi did not believe in Aryan superiority, although some of his comments may be seen as racist."},
-    {"fact": "Gandhi was a hypocrite who didn't believe in the rights of Africans while working with the British to segregate whites from blacks.", "validation": "False", "actual_fact": "Gandhi worked with the British to promote Indian rights but also sought equality for Africans."},
-    {"fact": "Gandhi was a sexist who believed women were inferior to men.", "validation": "False", "actual_fact": "Gandhi believed in women's equality and promoted women's rights."},
-    {"fact": "Gandhi was a predator who exploited young women and girls.", "validation": "False", "actual_fact": "There is no evidence suggesting Gandhi exploited young women or girls."},
-    {"fact": "Gandhi was against birth control and believed it was immoral.", "validation": "True", "actual_fact": "Gandhi opposed birth control and considered it immoral."},
-    {"fact": "Gandhi believed that women's menstruation cycle was a manifestation of the distortion of a woman's soul by her sexuality.", "validation": "True", "actual_fact": "Gandhi made such a comment, though its meaning is unclear."},
-    {"fact": "Gandhi was a man of peace who never promoted violence.", "validation": "False", "actual_fact": "While Gandhi promoted non-violence, he also supported the British war effort during World War I."},
-    {"fact": "Gandhi was a great leader who united India and led the country to independence.", "validation": "True", "actual_fact": "Gandhi played a key role in India's independence struggle."},
-    {"fact": "Gandhi was assassinated by a Hindu nationalist on January 30, 1948.", "validation": "True", "actual_fact": "Gandhi was assassinated by Nathuram Godse, a Hindu nationalist, on January 30, 1948."},
-    {"fact": "Gandhi liked to sleep alone in beds with his grandnieces and other young women.", "validation": "True", "actual_fact": "Gandhi slept with young women as part of his 'celibacy experiments'."},
-    {"fact": "Gandhi thought that Indians were superior to Africans.", "validation": "False", "actual_fact": "Though Gandhi made comments interpreted as racist, it’s unclear whether he believed Indians were superior to Africans."},
-    {"fact": "Gandhi was a supporter of the British war effort during World War I.", "validation": "True", "actual_fact": "Gandhi supported the British war effort during World War I."},
-    {"fact": "Gandhi was a strong believer in non-violence and never promoted violence.", "validation": "False", "actual_fact": "Gandhi promoted non-violence but also supported the British during World War I."},
-    {"fact": "Gandhi had a very poor relationship with his wife.", "validation": "True", "actual_fact": "Gandhi had a difficult relationship with his wife and even denied her life-saving drugs."},
-    {"fact": "Gandhi was a strong believer in the importance of celibacy.", "validation": "True", "actual_fact": "Gandhi believed strongly in celibacy and conducted 'celibacy experiments' with young women."},
-    {"fact": "Gandhi was a great supporter of women's rights.", "validation": "False", "actual_fact": "Gandhi held conservative views on women and believed menstruation was linked to their sexuality."},
-    {"fact": "Gandhi was a great leader who united India and led the country to independence.", "validation": "True", "actual_fact": "Gandhi played a key role in uniting India and leading it to independence."},
-    {"fact": "Gandhi was assassinated by a Hindu nationalist on January 30, 1948.", "validation": "True", "actual_fact": "Gandhi was assassinated by Nathuram Godse on January 30, 1948."}
-]
+# Updated category dropdown in the first column with the specified categories
+with col1:
+    category = st.selectbox("Choose a category:", 
+                            ["criminal_cases", "sports_cases", "economic_cases", 
+                             "historical_fake_news", "important_personalities", 
+                             "political_social_cases", "science_facts"], 
+                            key="category", index=0)
+
+# Updated action dropdown in the second column with specified tasks
+with col2:
+    task = st.selectbox("Choose an action:", ["fact_check", "source_finding"], key="task", index=0)
+
+# Full-width input area for URL and file upload with spacing
+st.markdown("<h3 class='subheader-text fade-in'>Enter a Video URL or Upload a Video:</h3>", unsafe_allow_html=True)
+
+# URL and video file uploader in full width with spacing
+video_url = st.text_input("Paste the URL here:", "", key="video_url_fullscreen")
+uploaded_file = st.file_uploader("Or upload a video file:", type=["mp4", "mov", "avi"], key="video_upload_fullscreen")
 
 
-
+# import streamlit as st
 import time
-import pandas as pd
 
-# Function to highlight validation results
-def color_validation(val):
-    if val == "True":
-        color = "#34A853"  # Green for True
-    else:
-        color = "#EA4335"  # Red for False
-    return f'background-color: {color}'
 
-# Create a pandas dataframe from the fact data
-df = pd.DataFrame(fact_data)
+# Display the response after 10 seconds delay
+# Submit button with added spacing
+if st.button("Submit"):
+    with st.spinner("Processing your request..."):
+        time.sleep(2)
+    
 
-# Submit button
-if st.button("Check Facts"):
-    # Loading message
-    st.markdown("<h4 style='color: #EA4335;'>Fact-checking in progress...</h4>", unsafe_allow_html=True)
+
+    # Example usage for each fact:
+
     
     # Simulate API call delay
-    time.sleep(12)
+    # time.sleep(2)  # Reduced delay for a smoother experience
 
-    # Display results
-    st.markdown("<h4 style='color: #34A853;'>Fact Check Results:</h4>", unsafe_allow_html=True)
+    # Prepare the request payload
+    payload = {
+        "category": category,
+        "task": task,
+        "url": video_url if video_url else None,
+        "file": uploaded_file if uploaded_file else None
+    }
+
+
     
-    # Display facts with validation in a styled table
-    st.write(
-        df[['fact', 'validation', 'actual_fact']].style.applymap(color_validation, subset=['validation'])
-    )
 
-    # Additional styling tips:
+    # Send the request to the API
+    response = requests.post("http://localhost:8000/process-video", data=payload)
+
+    # Check the response from the server
+
+    # Check the response from the server
+    # Check the response from the server
+    if response.status_code == 200:
+        result_data = response.json()
+
+        # Debugging: Check result_data structure
+        print("Result Data:", result_data)
+
+        # Display the full response without parsing
+        if "result" in result_data:
+            # Display the entire response in a styled container
+            st.markdown(f"<div class='response-container'>{result_data['result']}</div>", unsafe_allow_html=True)
+        else:
+            st.error("No valid results returned from the server.")
+    else:
+        st.error(f"Error processing the request: {response.text}")    # Additional table styling
     st.markdown("""
     <style>
     table {
@@ -137,40 +225,10 @@ if st.button("Check Facts"):
     </style>
     """, unsafe_allow_html=True)
 
-# import time
-# # Submit button
-# if st.button("Check Facts"):
-#     if video_url:
-#         st.markdown("<h4 style='color: #EA4335;'>Fact-checking in progress...</h4>", unsafe_allow_html=True)
-
-#         # Send request to the fact-checking API
-#         # response = requests.post("http://localhost:8000/fact-check", json={"url": video_url})
-#         time.sleep(5)
-
-#         st.markdown("<h4 style='color: #34A853;'>Fact Check Results:</h4>", unsafe_allow_html=True)
-#         st.write(fact_data)        
-#         # if response.status_code == 200:
-#         #     fact_check_result = response.json()
-#         #     transcript = fact_check_result.get("transcript")
-#         #     fact_check_output = fact_check_result.get("fact_check_result")
-            
-#         #     # Display results with vibrant colors
-#         #     # st.markdown("<h4 style='color: #4285F4;'>Transcript from the video:</h4>", unsafe_allow_html=True)
-#         #     # st.write(transcript)
-
-#         #     st.markdown("<h4 style='color: #34A853;'>Fact Check Results:</h4>", unsafe_allow_html=True)
-#         #     st.write(fact_check_output)
-#     #     else:
-#     #         st.error("Error in fact-checking. Please try again!")
-#     # else:
-#     #     st.warning("Please enter a valid YouTube URL.")
-
 # Footer
-st.markdown(
-    """
-    <div style="text-align: center; margin-top: 50px;">
-        <h4 style="color: #FBBC05;">Built for Google Hackathon 🚀</h4>
+st.markdown("""
+    <div class="footer-text fade-in">
+        <h4>Built for Google Hackathon 🚀</h4>
         <p>By Veritas AI | Powered by Network 18</p>
     </div>
-    """, unsafe_allow_html=True
-)
+""", unsafe_allow_html=True)
