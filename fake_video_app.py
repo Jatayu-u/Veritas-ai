@@ -12,7 +12,7 @@ import google.generativeai as genai
 from IPython.display import Markdown, Image as IPImage
 from PIL import Image
 
-genai.configure(api_key='AIzaSyAAF1cFQJy_zDZKIx8NhZuHKBExZ7mHYLM')
+genai.configure(api_key='')
 model = genai.GenerativeModel('gemini-1.5-flash')
 
 app = FastAPI()
@@ -43,8 +43,31 @@ def upload_and_process_video(video_path: str):
 # Analyze the video for tampering and generate insights
 def analyze_video(video_file):
     prompt = """
-    Analyze this video and check if any parts of it have been tampered with using AI or have been altered to say something different. 
-    If tampered, identify the timestamps and provide detailed insights on why the tampering is suspected.
+Analyze the provided video for any indications of tampering, editing, or manipulation. Your analysis should include the following details:
+
+1. **Tampering Detection**:
+   - Identify specific timestamps where tampering or editing is suspected.
+   - Describe the nature of the suspected alterations (e.g., visual edits, audio modifications, splicing).
+
+2. **Detailed Insights**:
+   - Provide logical reasoning for each identified tampering instance, including any inconsistencies in audio and visual elements.
+   - Discuss any discrepancies in lighting, shadows, or other visual artifacts that suggest manipulation.
+
+3. **Content Analysis**:
+   - Evaluate the authenticity of the spoken or visual content, indicating if the video has been altered to convey a different message.
+   - Highlight specific phrases or images that appear altered or out of context.
+
+4. **Confidence Score**:
+   - Assign a confidence score (0-100%) for each identified tampering instance, based on the evidence gathered during the analysis.
+
+5. **Edited Parts**:
+   - List any sections of the video that have been edited, providing timestamps and a brief description of the changes made.
+
+6. **Summarization**:
+   - Conclude with a summary of your findings, highlighting the overall authenticity of the video and any significant areas of concern.
+
+Ensure your analysis is thorough and well-structured, supporting each claim with logical reasoning and evidence drawn from the video.
+
     """
     print("Making LLM inference request...")
     response = model.generate_content([video_file, prompt], request_options={"timeout": 600})
